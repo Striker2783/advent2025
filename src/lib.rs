@@ -1,8 +1,9 @@
 mod one;
+mod two;
 
 use std::{path::Path, process::exit};
 
-const FNS: &[fn(&Path)] = &[one::run];
+const FNS: &[fn(&Path)] = &[one::run, two::run];
 
 pub fn run(n: u32, f: &Path) {
     let i = (n - 1) as usize;
