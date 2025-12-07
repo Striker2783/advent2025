@@ -31,31 +31,21 @@ fn solve1(v: &[Vec<u8>]) -> u32 {
 }
 
 fn solve2(v: &[Vec<u8>]) -> u64 {
-    let mut v = v.to_vec();
-    let mut v_count = vec![vec![0; v[0].len()]; v.len()];
-    for (i, v) in v.iter().enumerate() {
-        for (j, &b) in v.iter().enumerate() {
-            if b == b'S' {
-                v_count[i][j] += 1;
-            }
-        }
-    }
+    let mut v_count: Vec<Vec<_>> = (0..v.len())
+        .map(|i| {
+            (0..v[i].len())
+                .map(|j| if v[i][j] == b'S' { 1 } else { 0 })
+                .collect()
+        })
+        .collect();
     for i in 0..(v.len() - 1) {
         for j in 0..v[i].len() {
-            let b = v[i][j];
-            if b != b'S' {
-                continue;
-            }
             match v[i + 1][j] {
                 b'.' | b'S' => {
-                    v[i + 1][j] = b'S';
                     v_count[i + 1][j] += v_count[i][j];
                 }
                 b'^' => {
-                    v[i + 1][j - 1] = b'S';
                     v_count[i + 1][j - 1] += v_count[i][j];
-
-                    v[i + 1][j + 1] = b'S';
                     v_count[i + 1][j + 1] += v_count[i][j];
                 }
                 _ => {}
