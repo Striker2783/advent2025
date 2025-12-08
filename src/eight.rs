@@ -41,11 +41,13 @@ fn heap(v: &[(u64, u64, u64)]) -> BinaryHeap<Reverse<(u64, usize, usize)>> {
 #[derive(Debug)]
 struct UnionFind {
     p: Vec<usize>,
+    sets: usize,
 }
 impl UnionFind {
     pub fn new(n: usize) -> Self {
         Self {
             p: (0..n).collect(),
+            sets: n,
         }
     }
     fn sizes(&mut self) -> Vec<usize> {
@@ -77,6 +79,7 @@ impl UnionFind {
         if self.same_set(x, y) {
             return;
         }
+        self.sets -= 1;
         let root = self.p[x];
         self.p[root] = y;
     }
@@ -105,8 +108,7 @@ fn solve2(v: &[(u64, u64, u64)]) -> u64 {
     for _ in 0.. {
         let Reverse((_, i, j)) = heap.pop().unwrap();
         union.connect(i, j);
-        let sizes = union.sizes();
-        if sizes.len() == 1 {
+        if union.sets == 1 {
             return v[i].0 * v[j].0;
         }
     }
