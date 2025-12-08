@@ -1,3 +1,4 @@
+mod eight;
 mod five;
 mod four;
 mod one;
@@ -16,6 +17,7 @@ const FNS: &[fn(&Path)] = &[
     five::run,
     six::run,
     seven::run,
+    eight::run,
 ];
 
 pub fn run(n: u32, f: &Path) {
