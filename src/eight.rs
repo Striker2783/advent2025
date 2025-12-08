@@ -9,6 +9,7 @@ pub fn run(p: &Path) {
     let s = fs::read_to_string(p).unwrap();
     let p = parse(&s);
     println!("{}", solve1(&p, 1000));
+    println!("{}", solve2(&p));
 }
 
 fn parse(s: &str) -> Vec<(u64, u64, u64)> {
@@ -98,9 +99,23 @@ fn solve1(v: &[(u64, u64, u64)], n: usize) -> u64 {
     sizes.iter().take(3).map(|n| *n as u64).product()
 }
 
+fn solve2(v: &[(u64, u64, u64)]) -> u64 {
+    let mut heap = heap(v);
+    let mut union = UnionFind::new(v.len());
+    for _ in 0.. {
+        let Reverse((_, i, j)) = heap.pop().unwrap();
+        union.connect(i, j);
+        let sizes = union.sizes();
+        if sizes.len() == 1 {
+            return v[i].0 * v[j].0;
+        }
+    }
+    unreachable!()
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::eight::{parse, solve1};
+    use crate::eight::{parse, solve1, solve2};
 
     const TEST: &str = "162,817,812
 57,618,57
@@ -127,5 +142,6 @@ mod tests {
     fn test_solve() {
         let p = parse(TEST);
         assert_eq!(solve1(&p, 10), 40);
+        assert_eq!(solve2(&p), 25272);
     }
 }
