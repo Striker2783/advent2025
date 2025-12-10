@@ -2,6 +2,7 @@ use std::{
     collections::{HashSet, VecDeque},
     fs,
     path::Path,
+    vec,
 };
 
 pub fn run(p: &Path) {
@@ -117,9 +118,33 @@ fn row_echelon(matrix: &mut Vec<Vec<i64>>) {
     }
 }
 
+fn free_vars(m: &[Vec<i64>]) -> Vec<usize> {
+    let mut free = vec![true; m[0].len() - 1];
+    m.iter().for_each(|v| {
+        free[(0..(v.len() - 1)).find(|&i| v[i] != 0).unwrap()] = false;
+    });
+    free.iter()
+        .enumerate()
+        .filter_map(|(i, &b)| if b { Some(i) } else { None })
+        .collect()
+}
+
+fn free_combinations(n: usize, mut f: impl FnMut(&[i64])) {
+    fn helper(v: &mut Vec<i64>, n: usize, f: &mut impl FnMut(&[i64])) {
+        if n == 0 {
+            f(v);
+            return;
+        }
+        for a in 0..=500 {
+            v[n - 1] = a;
+            helper(v, n - 1, f);
+        }
+    }
+    helper(&mut vec![0; n], n, &mut f);
+}
+
 fn solve2(p: &[MachineConfig]) -> u64 {
-    let v: Vec<_> = p
-        .iter()
+    p.iter()
         .map(|config| {
             let mut matrix = vec![vec![0i64; config.1.len() + 1]; config.2.len()];
             (0..config.1.len()).for_each(|i| {
@@ -131,13 +156,56 @@ fn solve2(p: &[MachineConfig]) -> u64 {
                 *matrix[i].last_mut().unwrap() = config.2[i] as i64;
             });
             row_echelon(&mut matrix);
-            for v in matrix {
-                println!("{v:?}");
+            let free = free_vars(&matrix);
+
+            if free.is_empty() {
+                return matrix
+                    .iter()
+                    .map(|v| v.last().unwrap().unsigned_abs())
+                    .sum();
             }
-            unreachable!()
+            let mut min = u64::MAX;
+            free_combinations(free.len(), |frees| {
+                let mut mult = vec![0; matrix[0].len() - 1];
+                for (&n, &m) in frees.iter().zip(free.iter()) {
+                    mult[m] = n;
+                }
+                let values: Option<Vec<i64>> = matrix
+                    .iter()
+                    .map(|row| {
+                        let mut value = *row.last().unwrap()
+                            - row
+                                .iter()
+                                .cloned()
+                                .zip(mult.iter().cloned())
+                                .map(|(r, m)| r * m)
+                                .sum::<i64>();
+                        let pivot = *row.iter().find(|&&n| n != 0).unwrap();
+                        if pivot < 0 {
+                            value *= -1;
+                        }
+                        let pivot = pivot.abs();
+                        if value < 0 || value % pivot != 0 {
+                            return None;
+                        }
+                        Some(value / pivot)
+                    })
+                    .collect();
+                if let Some(v) = values {
+                    let sum = v.iter().sum::<i64>() + frees.iter().sum::<i64>();
+                    min = min.min(sum.unsigned_abs());
+                }
+            });
+            if min > 10000 {
+                println!("{free:?}");
+                for v in matrix.iter() {
+                    println!("{v:?}");
+                }
+                println!();
+            }
+            min
         })
-        .collect();
-    todo!()
+        .sum()
 }
 
 type MachineConfig = (Vec<bool>, Vec<Vec<usize>>, Vec<u64>);
