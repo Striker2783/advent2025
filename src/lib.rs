@@ -8,6 +8,7 @@ mod seven;
 mod six;
 mod ten;
 mod three;
+mod twelve;
 mod two;
 
 use std::{path::Path, process::exit};
@@ -24,6 +25,7 @@ const FNS: &[fn(&Path)] = &[
     nine::run,
     ten::run,
     eleven::run,
+    twelve::run,
 ];
 
 pub fn run(n: u32, f: &Path) {
